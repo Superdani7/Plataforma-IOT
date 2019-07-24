@@ -2,11 +2,16 @@ const mongoose = require('mongoose');
 const DeviceModel = mongoose.model('Device');
 const nodemailer = require('nodemailer')
 
+require('dotenv').config({ path: '../variables.env'});
+
 var transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: process.env.MAIL_ACCOUNT,
         pass: process.env.MAIL_PASSWORD
+    },
+    tls:{
+        rejectUnauthorized: false
     }
 });
 
