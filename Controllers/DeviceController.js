@@ -1,19 +1,10 @@
 const mongoose = require('mongoose');
 const DeviceModel = mongoose.model('Device');
-const nodemailer = require('nodemailer')
+const sgMail = require('@sendgrid/mail')
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
 require('dotenv').config({ path: '../variables.env'});
-
-var transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.MAIL_ACCOUNT,
-        pass: process.env.MAIL_PASSWORD
-    },
-    tls:{
-        rejectUnauthorized: false
-    }
-});
 
 module.exports.createDevice = function(req,res){
     const name = req.body.name;
@@ -73,21 +64,18 @@ module.exports.sendEmail = function(req,res) {
     const deviceId = req.body.deviceId;
     const date = new Date();
     const formattedDate = date.toISOString();
-    const mailOptions = {
-        from: process.env.MAIL_ACCOUNT,
+    const msg = {
+        from: 'alumno07@techtalents.club',
         to: 'daniel.vil.cos@techtalents.club',
-        subject: formattedDate + ' || New alert from device: ' + deviceId,
-        html: `<p>The device with ID: ${deviceId} sent you an alert at ${formattedDate}</p>`
+        subject: `${formattedDate} ' || New alert from device:  ${deviceId}`,
+        html: `<h1>https://thumbs-prod.si-cdn.com/H7aVwwcff-NyQDH0opXs7a6BDUg=/800x600/filters:no_upscale()/https://public-media.si-cdn.com/filer/a3/a5/a3a5e93c-0fd2-4ee7-b2ec-04616b1727d1/kq4q5h7f-1498751693.jpg</h1>`
     };
-
-    transporter.sendMail(mailOptions, function(err,info){
-        if (err) {
-            console.log(err);
-            res.status(400).json(err);
+//The device with ID: ${deviceId} sent you an alert at ${formattedDate}
+    sgMail.send(msg).then(function(message){
+        console.log(message);
+        if(message){
+            res.status(200).send('Email Sent')
         }
-        else{
-            console.log(info);
-            res.status(200).json(info);
-        };
     });
+        
 };
