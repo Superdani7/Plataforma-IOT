@@ -68,7 +68,7 @@ module.exports.sendEmail = function(req,res) {
         from: 'alumno07@techtalents.club',
         to: 'daniel.vil.cos@techtalents.club',
         subject: `${formattedDate} ' || New alert from device:  ${deviceId}`,
-        html: `<h1>https://thumbs-prod.si-cdn.com/H7aVwwcff-NyQDH0opXs7a6BDUg=/800x600/filters:no_upscale()/https://public-media.si-cdn.com/filer/a3/a5/a3a5e93c-0fd2-4ee7-b2ec-04616b1727d1/kq4q5h7f-1498751693.jpg</h1>`
+        html: `<img>https://thumbs-prod.si-cdn.com/H7aVwwcff-NyQDH0opXs7a6BDUg=/800x600/filters:no_upscale()/https://public-media.si-cdn.com/filer/a3/a5/a3a5e93c-0fd2-4ee7-b2ec-04616b1727d1/kq4q5h7f-1498751693.jpg</img>`
     };
 //The device with ID: ${deviceId} sent you an alert at ${formattedDate}
     sgMail.send(msg).then(function(message){
