@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/barecss@1.1.1/css/bare.min.css"/>
+        <title>Prueba</title>
+    </head>
+    <body>
+        <form action="https://gardenwetometer.herokuapp.com/create-device" method="POST">
+            <label for="name">Device name</label>
+            <br />
+            <input type="text" placeholder="Device name" name="name" required />
+            <br />
+            <label for="type">Device type</label>
+            <br /> 
+            <select name="type">
+                <option value="SENSOR">Tipo Sensor</option>
+                <option value="ACTUATOR">Tipo Actuator</option>
+            </select>
+            <br /> 
+            <button type="submit">Enviar formulario</button>
+        </form>
+        <form id="search-form" col="1/3">
+            <h2>Search a device by ID</h2>
+            <label for="device_id">Device ID
+                <br />
+                <input required type="text" name="device_id" id="device_id" minlength="24"/>
+                <br />
+                <button type="submit">Search</button>
+                <h4 id="device-info"></h4>
+            </label>
+        </form>
+  
+        <ul col="1/3" id="device-container"></ul>
+  
+        <form id='save-data'>
+            <label for="device-id">Device ID</label>
+            <input type="text" name="device-id-save" id="device-id-save" placeholder="Device ID" required minlength="24">
+            <label for="value">Value</label>
+            <input type="number" name="value" id="value-save" placeholder="25" required>
+            <button type='submit'>Save Data</button>
+        </form>
+
+        <form id='update-device'>
+            <label>Device ID</label>
+            <input type="text" name="device-id-save" id="device-id-update" placeholder="Device ID" required minlength="24">
+            <label>New Status</label>
+            <input style="height: 50px;" type="color" name="value" id="status-update" placeholder="25" required>
+            <button type='submit'>Save Data</button>
+        </form>
+
+        <form col = '1/3' id = 'send-email'>
+            <label>Device ID</label>
+            <input type="text" id="device-id-email" placeholder="Device ID" required minlength="24" />
+            <button type="submit">Send email</button>
+        </form>
+    </body>
+    <script>
+
+        const emailForm = document.querySelector('#send-email');
+        emailForm.addEventListener('submit', function(event){
+            event.preventDefault();
+            const deviceId = document.querySelector('#device-id-email').value;
+            const requestBody = {
+                deviceId: deviceId
+            };
+        const jsonBody = JSON.stringify(requestBody);
+
+        fetch('http://localhost:2000/send-email' {
+            method:'POST',
+            body: jsonBody,
+            headers:{
+                'Content-Type': 'application/josn'
+            }
+        })
+            .then(function(response){
+                return response.json();
+            })
+            .then(function(data){
+                console.log(data);
+            });
+        });
+
+        fetch('https://gardenwetometer.herokuapp.com/devices').then(function(response){
+            return response.json();
+            })
+            .then(function(data){
+                console.log(data);
+                const container = document.querySelector('#device-container');
+                data.forEach(function(device){
+                    console.log(device.name);
+                    const listItem = document.createElement('li');
+                    listItem.textContent = device.name + " | " + device.type;
+                    container.appendChild(listItem);
+                });
+            });
+        
+        const searchForm = document.querySelector('#search-form')
+        searchForm.addEventListener('submit', function(event) {
+            console.log('Event prevented')
+            event.preventDefault();
+            const deviceId = document.querySelector('#device_id').textContent
+            fetch('https://gardenwetometer.herokuapp.com/device?id=' + deviceId).then(function(response){
+                return response.json();
+            })
+            .then(function(data){
+                console.log(data)
+                const deviceInfo = document.querySelector('#device-info')
+                deviceInfo.textContent = 'Name: ' + data.name + ' | ' + "Type: " + data.type + "| Status: " + data.status;
+            }).catch(function(error){
+                res.status(400).send(error);
+            });
+            fetch('https://gardenwetometer.herokuapp.com/get-data?id=' +deviceId)
+                .then(function(response){
+                    return response.json();
+                })
+                .then(function(data){
+                    console.log(data);
+                });
+        });
+  
+        const saveForm = document.querySelector('#save-data');
+        saveForm.addEventListener('submit', function(event){
+            console.log('Event prevented')
+
+            event.preventDefault();
+            const deviceId = document.querySelector('#device-id-save').value
+            const value = document.querySelector('#value-save').value
+
+            const requestData = {
+                deviceId:deviceId,
+                value: value
+            }
+            const jsonData = JSON.stringify(requestData)
+
+            fetch('https://gardenwetometer.herokuapp.com/save-data',{
+                method:'POST',
+                body: jsonData,
+                headers:{
+                    'Content-Type': 'application/json'
+                }
+            }).then(function(response){
+                return response.text();       
+            })
+            .then(function(data){
+                console.log(data);
+            });
+        });
+        const updateForm = document.querySelector('#update-device');
+        updateForm.addEventListener('submit', function(event){
+            event.preventDefault();
+            const deviceId = document.querySelector('#device-id-update').value;
+            const newStatus = convertHex(document.querySelector('#status-update').value);
+            const requestData = {
+                deviceId: deviceId,
+                status: newStatus
+            };
+            const jsonData = JSON.stringify(requestData);
+
+            fetch('https://gardenwetometer.herokuapp.com/update-device',{
+                method:'POST',
+                body:jsonData,
+                headers:{
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(function(request){
+                    return request.text();
+                })
+                .then(function(data){
+                    console.log(data);
+                });
+        });
+        
+        function convertHex(hex) {
+			hex = hex.replace('#', '');
+			r = parseInt(hex.substring(0, 2), 16);
+			g = parseInt(hex.substring(2, 4), 16);
+			b = parseInt(hex.substring(4, 6), 16);
+
+			if (r == 0) {
+				r = '000';
+			} else if (r < 10) {
+				r = '00' + r;
+			} else if (r < 100) {
+				r = '0' + r;
+			}
+			if (g == 0) {
+				g = '000';
+			} else if (g < 10) {
+				g = '00' + g;
+			} else if (g < 100) {
+				g = '0' + g;
+			}
+			if (b == 0) {
+				b = '000';
+			} else if (b < 10) {
+				b = '00' + b;
+			} else if (b < 100) {
+				b = '0' + b;
+			}
+
+			result = parseInt(1 + '' + r + '' + g + '' + '' + b);
+			return result;
+		}
+    </script>
+</html>
